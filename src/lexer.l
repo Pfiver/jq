@@ -58,6 +58,7 @@ struct lexer_param;
 "//" { return DEFINEDOR; }
 "try" { return TRY; }
 "catch" { return CATCH; }
+"slurp" { return SLURP; }
 "label" { return LABEL; }
 "break" { return BREAK; }
 "__loc__" { return LOC; }

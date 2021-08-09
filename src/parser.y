@@ -72,6 +72,7 @@ struct lexer_param;
 %token OR "or"
 %token TRY "try"
 %token CATCH "catch"
+%token SLURP "slurp"
 %token LABEL "label"
 %token BREAK "break"
 %token LOC "__loc__"
@@ -96,7 +97,8 @@ struct lexer_param;
 %expect 0
 
 %precedence FUNCDEF
-%right '|'
+%precedence LABEL
+%left '|'
 %left ','
 %right "//"
 %nonassoc '=' SETPIPE SETPLUS SETMINUS SETMULT SETDIV SETMOD SETDEFINEDOR
@@ -345,7 +347,7 @@ FuncDef Exp %prec FUNCDEF {
   $$ = block_bind_referenced($1, $2, OP_IS_CALL_PSEUDO);
 } |
 
-Term "as" Patterns '|' Exp {
+Term "as" Patterns '|' Exp %prec LABEL {
   $$ = gen_destructure($1, $3, $5);
 } |
 "reduce" Term "as" Patterns '(' Exp ';' Exp ')' {
@@ -384,7 +386,7 @@ Term "as" Patterns '|' Exp {
   $$ = $2;
 } |
 
-"label" '$' IDENT '|' Exp {
+"label" '$' IDENT '|' Exp %prec LABEL {
   jv v = jv_string_fmt("*label-%s", jv_string_value($3));
   $$ = gen_location(@$, locations, gen_label(jv_string_value(v), $5));
   jv_free($3);
@@ -425,6 +427,10 @@ Exp '|' Exp {
 
 Exp ',' Exp {
   $$ = gen_both($1, $3);
+} |
+
+Exp '|' SLURP {
+  $$ = gen_collect($1);
 } |
 
 Exp '+' Exp {
